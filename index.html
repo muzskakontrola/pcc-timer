@@ -11,6 +11,11 @@
       --text:#F6F2FA; --muted:#E4DDF0;
       --border:rgba(255,255,255,0.14);
       --card:rgba(0,0,0,0.18);
+
+      /* režimy kruhu */
+      --workColor: rgba(181,107,255,0.42);  /* zatnuto */
+      --restColor: rgba(243,164,198,0.26);  /* uvolněno */
+      --pauseColor: rgba(120,140,170,0.22); /* pauza mezi cviky */
     }
     *{ box-sizing:border-box; }
     body{
@@ -127,15 +132,15 @@
       width:100%;
       height:100%;
       border-radius:50%;
-      background:
-        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 55%),
-        linear-gradient(135deg, rgba(181,107,255,0.32), rgba(243,164,198,0.22));
       border:1px solid rgba(255,255,255,0.18);
       box-shadow: 0 18px 80px rgba(0,0,0,0.35);
       transform: scale(0.88);
-      transition: transform 180ms ease, filter 180ms ease;
+      transition: transform 180ms ease, filter 180ms ease, background 180ms ease;
       display:grid;
       place-items:center;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 55%),
+        linear-gradient(135deg, rgba(181,107,255,0.32), rgba(243,164,198,0.22));
     }
     .ring.on{
       transform: scale(1.03);
@@ -172,6 +177,24 @@
       max-width:56ch;
       line-height:1.35;
     }
+
+    /* Barevné režimy kruhu */
+    .ring.mode-work{
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 55%),
+        linear-gradient(135deg, var(--workColor), rgba(181,107,255,0.10));
+    }
+    .ring.mode-rest{
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 55%),
+        linear-gradient(135deg, var(--restColor), rgba(243,164,198,0.10));
+    }
+    .ring.mode-pause{
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.16), rgba(255,255,255,0.02) 55%),
+        linear-gradient(135deg, var(--pauseColor), rgba(0,0,0,0.10));
+      filter: saturate(0.85);
+    }
   </style>
 </head>
 
@@ -181,7 +204,7 @@
       <div class="brand">
         <div class="tag">P.C.C. METHOD</div>
         <div class="title">Časovač tréninku</div>
-        <div class="subtitle">Klikni Start a jen sleduj kruh. Trénink spusť 2× denně, mezi nimi min. 2 hodiny pauza.</div>
+        <div class="subtitle">Klikni Start a sleduj kruh. Trénink spusť 2× denně, mezi nimi min. 2 hodiny pauza.</div>
       </div>
 
       <div class="tip">
@@ -201,7 +224,7 @@
       <div class="exercise" id="exerciseName">Připraveno</div>
 
       <div class="ringWrap">
-        <div class="ring" id="ring">
+        <div class="ring mode-rest" id="ring">
           <div class="ringInner">
             <div class="time" id="timeLeft">00</div>
             <div class="phase" id="phaseText">KLIKNI START</div>
@@ -209,66 +232,125 @@
         </div>
       </div>
 
-      <div class="hint" id="hint">
-        Zvuk funguje všude (po kliknutí Start). Vibrace je bonus – většinou funguje na Androidu, na iPhone často ne.
+      <div class="hint">
+        Zvuk funguje všude (po kliknutí Start). Vibrace je bonus – většinou Android, na iPhone často ne.
       </div>
     </div>
   </div>
 
 <script>
 /* =========================
-   1) DNY (zatím Den 1 + Den 7)
+   1) DNY 1–7 (HOTOVO)
    ========================= */
 const DAYS = {
   "Den 1": [
     { seconds:31, label:"Short Holding" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:35, label:"Trembling" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:31, label:"Short Holding" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:35, label:"Trembling" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:31, label:"Short Holding" },
     { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+  ],
 
+  "Den 2": [
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+  ],
+
+  "Den 3": [
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+  ],
+
+  "Den 4": [
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+  ],
+
+  "Den 5": [
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+  ],
+
+  "Den 6": [
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
     { seconds:35, label:"Trembling" },
   ],
 
   "Den 7": [
     { seconds:39, label:"Starter" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:31, label:"Short Holding" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:35, label:"Trembling" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:39, label:"Starter" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:39, label:"Steady Trembling" },
     { seconds:7,  label:"Pauza", rest:true },
-
     { seconds:31, label:"Short Holding" },
   ],
 };
 
 /* =========================
-   2) MIKRO-RYTMUS (jen vizuálně + zvuk)
-   - uživatel nevidí 1s/1s, ale kruh se mění
+   2) MIKRO-RYTMUS (vizuál + píp)
    ========================= */
 const MICRO = {
-  "Short Holding":   { pattern:[ {on:3}, {off:3} ] },                // 3s zatnout / 3s uvolnit
-  "Trembling":       { pattern:[ {on:1}, {off:1} ] },                // 1s/1s
-  "Steady Trembling":{ pattern:[ {on:2}, {off:1} ] },                // 2s/1s
-  "Starter":         { pattern:[ {on:1}, {off:1}, {on:3}, {off:1} ] },// mix
-  "Pauza":           { pattern:[ {off:1} ] },
+  "Short Holding":    { pattern:[ {on:3}, {off:3} ] },                  // 3/3
+  "Trembling":        { pattern:[ {on:1}, {off:1} ] },                  // 1/1
+  "Steady Trembling": { pattern:[ {on:2}, {off:1} ] },                  // 2/1
+  "Starter":          { pattern:[ {on:1}, {off:1}, {on:3}, {off:1} ] }, // mix
+  "Pauza":            { pattern:[ {off:1} ] },
 };
 
 /* =========================
@@ -292,7 +374,7 @@ function vibrate(ms=60){
 }
 
 /* =========================
-   4) UI
+   4) UI a stav
    ========================= */
 const daySelect = document.getElementById("daySelect");
 const startBtn  = document.getElementById("startBtn");
@@ -316,13 +398,25 @@ let microOn = false;
 let running = false;
 let timer = null;
 
+/* režimy kruhu */
 function setRing(on){
   ring.classList.toggle("on", on);
   phaseText.textContent = on ? "ZATNOUT" : "UVOLNIT";
+
+  ring.classList.remove("mode-work", "mode-rest", "mode-pause");
+  ring.classList.add(on ? "mode-work" : "mode-rest");
+}
+function setPauseMode(){
+  ring.classList.remove("mode-work", "mode-rest");
+  ring.classList.add("mode-pause");
+  ring.classList.remove("on");
+  phaseText.textContent = "PAUZA";
 }
 function setTime(sec){
   timeLeftEl.textContent = String(Math.max(0, Math.ceil(sec))).padStart(2,"0");
 }
+
+/* mikro rytmus pro aktuální cvik */
 function initMicroFor(label){
   const cfg = MICRO[label] || MICRO["Trembling"];
   microIndex = 0;
@@ -338,7 +432,7 @@ function nextMicro(label){
   microOn = !!seg.on;
   microRemaining = seg.on ?? seg.off ?? 1;
 
-  // signál při přepnutí fáze
+  // pípnutí jen při změně zatnout/uvolnit (pauza píp nepoužívá)
   if(microOn){
     beep(920,70); vibrate(40);
   }else{
@@ -347,6 +441,7 @@ function nextMicro(label){
   setRing(microOn);
 }
 
+/* hlavní tick */
 function tick(){
   if(!running) return;
 
@@ -359,21 +454,25 @@ function tick(){
     exerciseName.textContent = "Hotovo";
     phaseText.textContent = "KONEC";
     setTime(0);
-    setRing(false);
+    ring.classList.remove("on");
+    ring.classList.remove("mode-work","mode-rest");
+    ring.classList.add("mode-pause");
     return;
   }
 
-  // krok (celý blok) odpočet
+  // odpočet aktuálního bloku
   stepRemaining -= 1;
   setTime(stepRemaining);
 
-  // mikro fáze odpočet
-  microRemaining -= 1;
-  if(microRemaining <= 0){
-    nextMicro(s.label);
+  // mikro rytmus jen pokud to není pauza blok
+  if(!s.rest){
+    microRemaining -= 1;
+    if(microRemaining <= 0){
+      nextMicro(s.label);
+    }
   }
 
-  // konec kroku -> další krok
+  // konec bloku -> další
   if(stepRemaining <= 0){
     stepIndex += 1;
     const next = steps[stepIndex];
@@ -382,18 +481,17 @@ function tick(){
     }
     stepRemaining = next.seconds;
     exerciseName.textContent = next.label;
-
-    initMicroFor(next.label);
     setTime(stepRemaining);
 
-    // pauza krok: kruh nech na uvolnit
     if(next.rest){
-      setRing(false);
-      phaseText.textContent = "PAUZA";
+      setPauseMode();
+    }else{
+      initMicroFor(next.label);
     }
   }
 }
 
+/* změna dne */
 function setDay(key){
   currentDayKey = key;
   steps = DAYS[key];
@@ -410,12 +508,22 @@ function setDay(key){
   stepRemaining = first?.seconds ?? 0;
   exerciseName.textContent = first?.label ?? "Připraveno";
 
-  initMicroFor(first?.label ?? "Trembling");
   setTime(stepRemaining);
+  ring.classList.remove("mode-work","mode-rest","mode-pause","on");
+  ring.classList.add("mode-rest");
   phaseText.textContent = "KLIKNI START";
-  ring.classList.remove("on");
+
+  // připrav mikro rytmus jen jako start preview
+  if(first?.rest){
+    setPauseMode();
+  }else{
+    initMicroFor(first?.label ?? "Trembling");
+    ring.classList.remove("on"); // preview bez pulzu
+    phaseText.textContent = "KLIKNI START";
+  }
 }
 
+/* ovládání */
 startBtn.addEventListener("click", ()=>{
   if(running) return;
   running = true;
@@ -425,6 +533,14 @@ startBtn.addEventListener("click", ()=>{
 
   // start signál
   beep(880,90); vibrate(50);
+
+  // pokud startujeme na pauze (nemělo by), nastav pauzu
+  const s = steps[stepIndex];
+  if(s?.rest){
+    setPauseMode();
+  }else{
+    initMicroFor(s?.label ?? "Trembling");
+  }
 
   if(!timer) timer = setInterval(tick, 1000);
 });
@@ -438,6 +554,7 @@ resetBtn.addEventListener("click", ()=>{
   setDay(currentDayKey);
 });
 
+/* dropdown */
 Object.keys(DAYS).forEach(k=>{
   const opt = document.createElement("option");
   opt.value = k;
