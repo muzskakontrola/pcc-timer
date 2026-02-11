@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>P.C.C. Timer</title>
+  <style>
+    :root{
+      --bg1:#1A1324; --bg2:#3B1C4A; --accent:#B56BFF; --accent2:#F3A4C6;
+      --text:#F6F2FA; --muted:#E4DDF0; --card:rgba(255,255,255,0.06);
+      --border:rgba(255,255,255,0.12);
+    }
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 20% 10%, var(--accent) 0%, transparent 55%),
+                  radial-gradient(1000px 700px at 80% 30%, var(--accent2) 0%, transparent 60%),
+                  linear-gradient(160deg, var(--bg1), var(--bg2));
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .wrap{ width:min(980px,100%); }
+    .top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    .brand{
+      padding:14px 16px; border:1px solid var(--border); background:var(--card);
+      border-radius:16px; backdrop-filter: blur(10px);
+    }
+    .brand .tag{ font-weight:700; letter-spacing:0.08em; font-size:12px; opacity:0.9;}
+    .brand .name{ font-size:20px; font-weight:800; margin-top:6px; }
+    .brand .sub{ color:var(--muted); margin-top:4px; font-size:13px; line-height:1.35;}
+    .panel{
+      border:1px solid var(--border); background:var(--card); border-radius:18px;
+      padding:18px; backdrop-filter: blur(10px);
+      display:grid; grid-template-columns: 1.15fr 0.85fr; gap:16px;
+    }
+    @media (max-width: 820px){ .panel{ grid-template-columns:1fr; } .top{flex-direction:column;} }
+    .card{ border:1px solid var(--border); border-radius:16px; padding:16px; background: rgba(0,0,0,0.12); }
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    select, button{
+      border:1px solid var(--border); background:rgba(0,0,0,0.25); color:var(--text);
+      padding:10px 12px; border-radius:12px; font-weight:600;
+    }
+    button{ cursor:pointer; }
+    button.primary{ background: linear-gradient(135deg, rgba(181,107,255,0.35), rgba(243,164,198,0.22)); }
+    button:disabled{ opacity:0.5; cursor:not-allowed; }
+    .big{
+      font-size:56px; font-weight:900; letter-spacing:0.02em; margin:10px 0;
+    }
+    .label{ color:var(--muted); font-size:13px; }
+    .step{
+      font-size:16px; font-weight:800; margin-top:6px;
+      display:flex; gap:10px; align-items:center;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:7px 10px; border-radius:999px; border:1px solid var(--border);
+      background: rgba(0,0,0,0.18); font-size:12px; font-weight:700;
+    }
+    .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); }
+    .dot.rest{ background:var(--accent2); }
+    .list{ margin:0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.5; }
+    .footer{ margin-top:14px; color:rgba(246,242,250,0.78); font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="tag">P.C.C. METHOD</div>
+        <div class="name">Intervalový časovač</div>
+        <div class="sub">Klikni „Start“ a řiď se rytmem. Dva tréninky denně, mezi nimi min. 2 hodiny pauza.</div>
+      </div>
+
+      <div class="brand">
+        <div class="tag">TIP</div>
+        <div class="sub">Pokud někdy cítíš únavu nebo nepříjemný tlak, uber intenzitu nebo vynech trénink.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="label">Vyber den</div>
+            <select id="daySelect"></select>
+          </div>
+          <div class="row">
+            <button id="startBtn" class="primary">Start</button>
+            <button id="pauseBtn" disabled>Pauza</button>
+            <button id="resetBtn">Reset</button>
+          </div>
+        </div>
+
+        <div class="step" id="stepTitle">
+          <span class="pill"><span class="dot"></span> WORK</span>
+          <span id="stepName">Připraveno</span>
+        </div>
+
+        <div class="big" id="timeLeft">00</div>
+        <div class="label" id="stepHint">Vyber den a klikni Start.</div>
+      </div>
+
+      <div class="card">
+        <div class="label" style="margin-bottom:8px;">Aktuální sekvence (náhled)</div>
+        <ul class="list" id="sequenceList"></ul>
+        <div class="footer">Pozn.: „Work“ = zatnutí, „Rest“ = uvolnění. Sekundy jsou přesné podle nastavení dne.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/**
+ * Každý den je pole kroků: { type: "work"|"rest", seconds: number, label: string }
+ * Upravíš si to podle tvých finálních dnů.
+ */
+const DAYS = {
+  "Den 1 (ukázka)": [
+    {type:"work", seconds:3, label:"Short Holding"},
+    {type:"rest", seconds:3, label:"Pauza"},
+    {type:"work", seconds:3, label:"Short Holding"},
+    {type:"rest", seconds:3, label:"Pauza"},
+  ],
+  "Den 2 (ukázka)": [
+    {type:"work", seconds:1, label:"Rytmus"},
+    {type:"rest", seconds:1, label:"Pauza"},
+    {type:"work", seconds:1, label:"Rytmus"},
+    {type:"rest", seconds:1, label:"Pauza"},
+  ],
+  "Den 7 – Závěrečný rytmus (finální)": [
+    {type:"work", seconds:1, label:"Zatnutí"},
+    {type:"rest", seconds:1, label:"Pauza"},
+    {type:"work", seconds:3, label:"Zatnutí"},
+    {type:"rest", seconds:1, label:"Pauza"},
+    {type:"work", seconds:1, label:"Zatnutí"},
+    {type:"rest", seconds:1, label:"Pauza"},
+    {type:"work", seconds:3, label:"Zatnutí"},
+  ]
+};
+
+const daySelect = document.getElementById("daySelect");
+const sequenceList = document.getElementById("sequenceList");
+const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const resetBtn = document.getElementById("resetBtn");
+const timeLeftEl = document.getElementById("timeLeft");
+const stepNameEl = document.getElementById("stepName");
+const stepTitleEl = document.getElementById("stepTitle");
+const stepHintEl = document.getElementById("stepHint");
+
+let currentDayKey = Object.keys(DAYS)[0];
+let steps = DAYS[currentDayKey];
+let stepIndex = 0;
+let remaining = steps[0]?.seconds ?? 0;
+let timer = null;
+let running = false;
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function renderTime(){
+  timeLeftEl.textContent = pad(remaining);
+}
+
+function renderStep(){
+  const s = steps[stepIndex];
+  if(!s){
+    stepNameEl.textContent = "Hotovo";
+    stepHintEl.textContent = "Sekvence dokončena. Můžeš dát reset nebo spustit znovu.";
+    timeLeftEl.textContent = "00";
+    stepTitleEl.querySelector(".pill").innerHTML = `<span class="dot"></span> KONEC`;
+    return;
+  }
+  remaining = s.seconds;
+  const dot = s.type === "rest" ? `<span class="dot rest"></span>` : `<span class="dot"></span>`;
+  const head = s.type === "rest" ? "REST" : "WORK";
+  stepTitleEl.querySelector(".pill").innerHTML = `${dot} ${head}`;
+  stepNameEl.textContent = s.label;
+  stepHintEl.textContent = (s.type === "rest")
+    ? "Uvolni, dýchej klidně."
+    : "Zatni čistě, bez břicha a hýždí.";
+  renderTime();
+}
+
+function renderSequencePreview(){
+  sequenceList.innerHTML = "";
+  steps.forEach((s,i)=>{
+    const li = document.createElement("li");
+    li.textContent = `${i+1}. ${s.type.toUpperCase()} – ${s.seconds}s (${s.label})`;
+    sequenceList.appendChild(li);
+  });
+}
+
+function setDay(key){
+  currentDayKey = key;
+  steps = DAYS[currentDayKey];
+  stepIndex = 0;
+  running = false;
+  if(timer){ clearInterval(timer); timer = null; }
+  startBtn.disabled = false;
+  pauseBtn.disabled = true;
+  pauseBtn.textContent = "Pauza";
+  renderSequencePreview();
+  renderStep();
+}
+
+function tick(){
+  if(!running) return;
+  remaining -= 1;
+  if(remaining <= 0){
+    stepIndex += 1;
+    if(stepIndex >= steps.length){
+      running = false;
+      clearInterval(timer); timer = null;
+      startBtn.disabled = false;
+      pauseBtn.disabled = true;
+      renderStep();
+      return;
+    }
+    renderStep();
+    return;
+  }
+  renderTime();
+}
+
+startBtn.addEventListener("click", ()=>{
+  if(running) return;
+  running = true;
+  startBtn.disabled = true;
+  pauseBtn.disabled = false;
+  pauseBtn.textContent = "Pauza";
+  if(!timer){ timer = setInterval(tick, 1000); }
+});
+
+pauseBtn.addEventListener("click", ()=>{
+  if(!running){
+    running = true;
+    pauseBtn.textContent = "Pauza";
+    return;
+  }
+  running = false;
+  pauseBtn.textContent = "Pokračovat";
+});
+
+resetBtn.addEventListener("click", ()=>{
+  setDay(currentDayKey);
+});
+
+Object.keys(DAYS).forEach(k=>{
+  const opt = document.createElement("option");
+  opt.value = k; opt.textContent = k;
+  daySelect.appendChild(opt);
+});
+daySelect.addEventListener("change", (e)=> setDay(e.target.value));
+
+setDay(currentDayKey);
+</script>
+</body>
+</html>
