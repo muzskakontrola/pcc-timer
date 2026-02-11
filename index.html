@@ -6,224 +6,414 @@
   <title>P.C.C. Timer</title>
   <style>
     :root{
-      --bg1:#1A1324; --bg2:#3B1C4A; --accent:#B56BFF; --accent2:#F3A4C6;
-      --text:#F6F2FA; --muted:#E4DDF0; --card:rgba(255,255,255,0.06);
-      --border:rgba(255,255,255,0.12);
+      --bg1:#1A1324; --bg2:#3B1C4A;
+      --accent:#B56BFF; --accent2:#F3A4C6;
+      --text:#F6F2FA; --muted:#E4DDF0;
+      --border:rgba(255,255,255,0.14);
+      --card:rgba(0,0,0,0.18);
     }
+    *{ box-sizing:border-box; }
     body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
-      background: radial-gradient(1200px 800px at 20% 10%, var(--accent) 0%, transparent 55%),
-                  radial-gradient(1000px 700px at 80% 30%, var(--accent2) 0%, transparent 60%),
-                  linear-gradient(160deg, var(--bg1), var(--bg2));
-      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(181,107,255,0.85) 0%, transparent 55%),
+        radial-gradient(1000px 700px at 80% 30%, rgba(243,164,198,0.72) 0%, transparent 60%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
     }
-    .wrap{ width:min(980px,100%); }
-    .top{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; }
-    .brand{
-      padding:14px 16px; border:1px solid var(--border); background:var(--card);
-      border-radius:16px; backdrop-filter: blur(10px);
+
+    .app{ width:min(1100px,100%); margin:0 auto; }
+    .topbar{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:18px;
     }
-    .brand .tag{ font-weight:700; letter-spacing:0.08em; font-size:12px; opacity:0.9;}
-    .brand .name{ font-size:20px; font-weight:800; margin-top:6px; }
-    .brand .sub{ color:var(--muted); margin-top:4px; font-size:13px; line-height:1.35;}
-    .panel{
-      border:1px solid var(--border); background:var(--card); border-radius:18px;
-      padding:18px; backdrop-filter: blur(10px);
-      display:grid; grid-template-columns: 1.15fr 0.85fr; gap:16px;
+    .brand, .tip{
+      padding:14px 16px;
+      border:1px solid var(--border);
+      background:var(--card);
+      border-radius:16px;
+      backdrop-filter: blur(10px);
     }
-    @media (max-width: 820px){ .panel{ grid-template-columns:1fr; } .top{flex-direction:column;} }
-    .card{ border:1px solid var(--border); border-radius:16px; padding:16px; background: rgba(0,0,0,0.12); }
-    .row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .brand .tag{
+      font-weight:900;
+      letter-spacing:.08em;
+      font-size:12px;
+      opacity:.9;
+    }
+    .brand .title{
+      font-size:20px;
+      font-weight:1000;
+      margin-top:6px;
+    }
+    .brand .subtitle{
+      opacity:.85;
+      margin-top:4px;
+      font-size:13px;
+      line-height:1.35;
+      max-width:62ch;
+    }
+    .tip .tag{
+      font-weight:900;
+      letter-spacing:.08em;
+      font-size:12px;
+      opacity:.9;
+    }
+    .tip .text{
+      opacity:.85;
+      margin-top:6px;
+      font-size:13px;
+      line-height:1.35;
+      max-width:54ch;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
     select, button{
-      border:1px solid var(--border); background:rgba(0,0,0,0.25); color:var(--text);
-      padding:10px 12px; border-radius:12px; font-weight:600;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(0,0,0,0.22);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:800;
+      cursor:pointer;
+      outline:none;
     }
-    button{ cursor:pointer; }
-    button.primary{ background: linear-gradient(135deg, rgba(181,107,255,0.35), rgba(243,164,198,0.22)); }
-    button:disabled{ opacity:0.5; cursor:not-allowed; }
-    .big{
-      font-size:56px; font-weight:900; letter-spacing:0.02em; margin:10px 0;
+    button.primary{
+      background: linear-gradient(135deg, rgba(181,107,255,0.50), rgba(243,164,198,0.28));
     }
-    .label{ color:var(--muted); font-size:13px; }
-    .step{
-      font-size:16px; font-weight:800; margin-top:6px;
-      display:flex; gap:10px; align-items:center;
+    button:disabled{ opacity:0.55; cursor:not-allowed; }
+
+    .center{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      padding:20px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.14);
+      border-radius:22px;
+      backdrop-filter: blur(10px);
     }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:7px 10px; border-radius:999px; border:1px solid var(--border);
-      background: rgba(0,0,0,0.18); font-size:12px; font-weight:700;
+    .exercise{
+      font-size:18px;
+      font-weight:1000;
+      opacity:.96;
+      text-align:center;
     }
-    .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); }
-    .dot.rest{ background:var(--accent2); }
-    .list{ margin:0; padding-left:18px; color:var(--muted); font-size:13px; line-height:1.5; }
-    .footer{ margin-top:14px; color:rgba(246,242,250,0.78); font-size:12px; }
+
+    .ringWrap{
+      width:min(520px, 90vw);
+      aspect-ratio:1;
+      display:grid;
+      place-items:center;
+    }
+    .ring{
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.18), rgba(255,255,255,0.02) 55%),
+        linear-gradient(135deg, rgba(181,107,255,0.32), rgba(243,164,198,0.22));
+      border:1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 18px 80px rgba(0,0,0,0.35);
+      transform: scale(0.88);
+      transition: transform 180ms ease, filter 180ms ease;
+      display:grid;
+      place-items:center;
+    }
+    .ring.on{
+      transform: scale(1.03);
+      filter: brightness(1.12);
+    }
+    .ringInner{
+      width:76%;
+      height:76%;
+      border-radius:50%;
+      background: rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.12);
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:18px;
+    }
+    .time{
+      font-size:84px;
+      font-weight:1100;
+      letter-spacing:.02em;
+      line-height:1;
+    }
+    .phase{
+      margin-top:10px;
+      font-weight:1000;
+      letter-spacing:.10em;
+      opacity:.92;
+      font-size:14px;
+    }
+    .hint{
+      font-size:12px;
+      opacity:.78;
+      text-align:center;
+      max-width:56ch;
+      line-height:1.35;
+    }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="top">
+  <div class="app">
+    <div class="topbar">
       <div class="brand">
         <div class="tag">P.C.C. METHOD</div>
-        <div class="name">Intervalový časovač</div>
-        <div class="sub">Klikni „Start“ a řiď se rytmem. Dva tréninky denně, mezi nimi min. 2 hodiny pauza.</div>
+        <div class="title">Časovač tréninku</div>
+        <div class="subtitle">Klikni Start a jen sleduj kruh. Trénink spusť 2× denně, mezi nimi min. 2 hodiny pauza.</div>
       </div>
 
-      <div class="brand">
+      <div class="tip">
         <div class="tag">TIP</div>
-        <div class="sub">Pokud někdy cítíš únavu nebo nepříjemný tlak, uber intenzitu nebo vynech trénink.</div>
+        <div class="text">Kvalita je víc než síla. Pokud cítíš únavu nebo tlak, uber intenzitu nebo trénink vynech.</div>
+      </div>
+
+      <div class="controls">
+        <select id="daySelect"></select>
+        <button id="startBtn" class="primary">Start</button>
+        <button id="pauseBtn" disabled>Pauza</button>
+        <button id="resetBtn">Reset</button>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="card">
-        <div class="row">
-          <div>
-            <div class="label">Vyber den</div>
-            <select id="daySelect"></select>
-          </div>
-          <div class="row">
-            <button id="startBtn" class="primary">Start</button>
-            <button id="pauseBtn" disabled>Pauza</button>
-            <button id="resetBtn">Reset</button>
+    <div class="center">
+      <div class="exercise" id="exerciseName">Připraveno</div>
+
+      <div class="ringWrap">
+        <div class="ring" id="ring">
+          <div class="ringInner">
+            <div class="time" id="timeLeft">00</div>
+            <div class="phase" id="phaseText">KLIKNI START</div>
           </div>
         </div>
-
-        <div class="step" id="stepTitle">
-          <span class="pill"><span class="dot"></span> WORK</span>
-          <span id="stepName">Připraveno</span>
-        </div>
-
-        <div class="big" id="timeLeft">00</div>
-        <div class="label" id="stepHint">Vyber den a klikni Start.</div>
       </div>
 
-      <div class="card">
-        <div class="label" style="margin-bottom:8px;">Aktuální sekvence (náhled)</div>
-        <ul class="list" id="sequenceList"></ul>
-        <div class="footer">Pozn.: „Work“ = zatnutí, „Rest“ = uvolnění. Sekundy jsou přesné podle nastavení dne.</div>
+      <div class="hint" id="hint">
+        Zvuk funguje všude (po kliknutí Start). Vibrace je bonus – většinou funguje na Androidu, na iPhone často ne.
       </div>
     </div>
   </div>
 
 <script>
-/**
- * Každý den je pole kroků: { type: "work"|"rest", seconds: number, label: string }
- * Upravíš si to podle tvých finálních dnů.
- */
+/* =========================
+   1) DNY (zatím Den 1 + Den 7)
+   ========================= */
 const DAYS = {
-   "Den 1": [
-  {type:"work", seconds:31, label:"Short Holding"},
-  {type:"rest", seconds:7,  label:"Pauza"},
-  {type:"work", seconds:35, label:"Trembling"},
-  {type:"rest", seconds:7,  label:"Pauza"},
-  {type:"work", seconds:31, label:"Short Holding"},
-  {type:"rest", seconds:7,  label:"Pauza"},
-  {type:"work", seconds:35, label:"Trembling"},
-  {type:"rest", seconds:7,  label:"Pauza"},
-  {type:"work", seconds:31, label:"Short Holding"},
-  {type:"rest", seconds:7,  label:"Pauza"},
-  {type:"work", seconds:35, label:"Trembling"},
-],
-  "Den 2 (ukázka)": [
-    {type:"work", seconds:1, label:"Rytmus"},
-    {type:"rest", seconds:1, label:"Pauza"},
-    {type:"work", seconds:1, label:"Rytmus"},
-    {type:"rest", seconds:1, label:"Pauza"},
+  "Den 1": [
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:35, label:"Trembling" },
   ],
-  "Den 7 – Závěrečný rytmus (finální)": [
-    {type:"work", seconds:1, label:"Zatnutí"},
-    {type:"rest", seconds:1, label:"Pauza"},
-    {type:"work", seconds:3, label:"Zatnutí"},
-    {type:"rest", seconds:1, label:"Pauza"},
-    {type:"work", seconds:1, label:"Zatnutí"},
-    {type:"rest", seconds:1, label:"Pauza"},
-    {type:"work", seconds:3, label:"Zatnutí"},
-  ]
+
+  "Den 7": [
+    { seconds:39, label:"Starter" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:31, label:"Short Holding" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:35, label:"Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:39, label:"Starter" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:39, label:"Steady Trembling" },
+    { seconds:7,  label:"Pauza", rest:true },
+
+    { seconds:31, label:"Short Holding" },
+  ],
 };
 
+/* =========================
+   2) MIKRO-RYTMUS (jen vizuálně + zvuk)
+   - uživatel nevidí 1s/1s, ale kruh se mění
+   ========================= */
+const MICRO = {
+  "Short Holding":   { pattern:[ {on:3}, {off:3} ] },                // 3s zatnout / 3s uvolnit
+  "Trembling":       { pattern:[ {on:1}, {off:1} ] },                // 1s/1s
+  "Steady Trembling":{ pattern:[ {on:2}, {off:1} ] },                // 2s/1s
+  "Starter":         { pattern:[ {on:1}, {off:1}, {on:3}, {off:1} ] },// mix
+  "Pauza":           { pattern:[ {off:1} ] },
+};
+
+/* =========================
+   3) ZVUK + VIBRACE
+   ========================= */
+let audioCtx = null;
+function beep(freq=880, ms=80){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.frequency.value = freq;
+    o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    o.start();
+    setTimeout(()=>{ o.stop(); }, ms);
+  }catch(e){}
+}
+function vibrate(ms=60){
+  if(navigator.vibrate) navigator.vibrate(ms);
+}
+
+/* =========================
+   4) UI
+   ========================= */
 const daySelect = document.getElementById("daySelect");
-const sequenceList = document.getElementById("sequenceList");
-const startBtn = document.getElementById("startBtn");
-const pauseBtn = document.getElementById("pauseBtn");
-const resetBtn = document.getElementById("resetBtn");
-const timeLeftEl = document.getElementById("timeLeft");
-const stepNameEl = document.getElementById("stepName");
-const stepTitleEl = document.getElementById("stepTitle");
-const stepHintEl = document.getElementById("stepHint");
+const startBtn  = document.getElementById("startBtn");
+const pauseBtn  = document.getElementById("pauseBtn");
+const resetBtn  = document.getElementById("resetBtn");
+const ring      = document.getElementById("ring");
+const timeLeftEl= document.getElementById("timeLeft");
+const phaseText = document.getElementById("phaseText");
+const exerciseName = document.getElementById("exerciseName");
 
 let currentDayKey = Object.keys(DAYS)[0];
 let steps = DAYS[currentDayKey];
+
 let stepIndex = 0;
-let remaining = steps[0]?.seconds ?? 0;
-let timer = null;
+let stepRemaining = steps[0]?.seconds ?? 0;
+
+let microIndex = 0;
+let microRemaining = 0;
+let microOn = false;
+
 let running = false;
+let timer = null;
 
-function pad(n){ return String(n).padStart(2,"0"); }
-function renderTime(){
-  timeLeftEl.textContent = pad(remaining);
+function setRing(on){
+  ring.classList.toggle("on", on);
+  phaseText.textContent = on ? "ZATNOUT" : "UVOLNIT";
 }
+function setTime(sec){
+  timeLeftEl.textContent = String(Math.max(0, Math.ceil(sec))).padStart(2,"0");
+}
+function initMicroFor(label){
+  const cfg = MICRO[label] || MICRO["Trembling"];
+  microIndex = 0;
+  const first = cfg.pattern[0];
+  microOn = !!first.on;
+  microRemaining = first.on ?? first.off ?? 1;
+  setRing(microOn);
+}
+function nextMicro(label){
+  const cfg = MICRO[label] || MICRO["Trembling"];
+  microIndex = (microIndex + 1) % cfg.pattern.length;
+  const seg = cfg.pattern[microIndex];
+  microOn = !!seg.on;
+  microRemaining = seg.on ?? seg.off ?? 1;
 
-function renderStep(){
-  const s = steps[stepIndex];
-  if(!s){
-    stepNameEl.textContent = "Hotovo";
-    stepHintEl.textContent = "Sekvence dokončena. Můžeš dát reset nebo spustit znovu.";
-    timeLeftEl.textContent = "00";
-    stepTitleEl.querySelector(".pill").innerHTML = `<span class="dot"></span> KONEC`;
-    return;
+  // signál při přepnutí fáze
+  if(microOn){
+    beep(920,70); vibrate(40);
+  }else{
+    beep(520,50);
   }
-  remaining = s.seconds;
-  const dot = s.type === "rest" ? `<span class="dot rest"></span>` : `<span class="dot"></span>`;
-  const head = s.type === "rest" ? "REST" : "WORK";
-  stepTitleEl.querySelector(".pill").innerHTML = `${dot} ${head}`;
-  stepNameEl.textContent = s.label;
-  stepHintEl.textContent = (s.type === "rest")
-    ? "Uvolni, dýchej klidně."
-    : "Zatni čistě, bez břicha a hýždí.";
-  renderTime();
-}
-
-function renderSequencePreview(){
-  sequenceList.innerHTML = "";
-  steps.forEach((s,i)=>{
-    const li = document.createElement("li");
-    li.textContent = `${i+1}. ${s.type.toUpperCase()} – ${s.seconds}s (${s.label})`;
-    sequenceList.appendChild(li);
-  });
-}
-
-function setDay(key){
-  currentDayKey = key;
-  steps = DAYS[currentDayKey];
-  stepIndex = 0;
-  running = false;
-  if(timer){ clearInterval(timer); timer = null; }
-  startBtn.disabled = false;
-  pauseBtn.disabled = true;
-  pauseBtn.textContent = "Pauza";
-  renderSequencePreview();
-  renderStep();
+  setRing(microOn);
 }
 
 function tick(){
   if(!running) return;
-  remaining -= 1;
-  if(remaining <= 0){
-    stepIndex += 1;
-    if(stepIndex >= steps.length){
-      running = false;
-      clearInterval(timer); timer = null;
-      startBtn.disabled = false;
-      pauseBtn.disabled = true;
-      renderStep();
-      return;
-    }
-    renderStep();
+
+  const s = steps[stepIndex];
+  if(!s){
+    running = false;
+    clearInterval(timer); timer = null;
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    exerciseName.textContent = "Hotovo";
+    phaseText.textContent = "KONEC";
+    setTime(0);
+    setRing(false);
     return;
   }
-  renderTime();
+
+  // krok (celý blok) odpočet
+  stepRemaining -= 1;
+  setTime(stepRemaining);
+
+  // mikro fáze odpočet
+  microRemaining -= 1;
+  if(microRemaining <= 0){
+    nextMicro(s.label);
+  }
+
+  // konec kroku -> další krok
+  if(stepRemaining <= 0){
+    stepIndex += 1;
+    const next = steps[stepIndex];
+    if(!next){
+      tick(); return;
+    }
+    stepRemaining = next.seconds;
+    exerciseName.textContent = next.label;
+
+    initMicroFor(next.label);
+    setTime(stepRemaining);
+
+    // pauza krok: kruh nech na uvolnit
+    if(next.rest){
+      setRing(false);
+      phaseText.textContent = "PAUZA";
+    }
+  }
+}
+
+function setDay(key){
+  currentDayKey = key;
+  steps = DAYS[key];
+  stepIndex = 0;
+  running = false;
+
+  if(timer){ clearInterval(timer); timer = null; }
+
+  startBtn.disabled = false;
+  pauseBtn.disabled = true;
+  pauseBtn.textContent = "Pauza";
+
+  const first = steps[0];
+  stepRemaining = first?.seconds ?? 0;
+  exerciseName.textContent = first?.label ?? "Připraveno";
+
+  initMicroFor(first?.label ?? "Trembling");
+  setTime(stepRemaining);
+  phaseText.textContent = "KLIKNI START";
+  ring.classList.remove("on");
 }
 
 startBtn.addEventListener("click", ()=>{
@@ -232,17 +422,16 @@ startBtn.addEventListener("click", ()=>{
   startBtn.disabled = true;
   pauseBtn.disabled = false;
   pauseBtn.textContent = "Pauza";
-  if(!timer){ timer = setInterval(tick, 1000); }
+
+  // start signál
+  beep(880,90); vibrate(50);
+
+  if(!timer) timer = setInterval(tick, 1000);
 });
 
 pauseBtn.addEventListener("click", ()=>{
-  if(!running){
-    running = true;
-    pauseBtn.textContent = "Pauza";
-    return;
-  }
-  running = false;
-  pauseBtn.textContent = "Pokračovat";
+  running = !running;
+  pauseBtn.textContent = running ? "Pauza" : "Pokračovat";
 });
 
 resetBtn.addEventListener("click", ()=>{
@@ -251,7 +440,8 @@ resetBtn.addEventListener("click", ()=>{
 
 Object.keys(DAYS).forEach(k=>{
   const opt = document.createElement("option");
-  opt.value = k; opt.textContent = k;
+  opt.value = k;
+  opt.textContent = k;
   daySelect.appendChild(opt);
 });
 daySelect.addEventListener("change", (e)=> setDay(e.target.value));
